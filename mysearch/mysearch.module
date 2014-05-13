@@ -29,7 +29,7 @@ function mysearch_search_execute($keys = NULL) {
   if (!$keys) {
     $keys = '';
   }
-       //var_dump($conditions);
+
   $nodes = db_select('node', 'n')
     ->fields('n')
     ->condition('n.title', '%' . db_like($keys) . '%', 'LIKE')
