@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * SZadera module implementing a search type for search module testing.
+ */
+
+/**
+ * Implements mysearch_search_info().
+ * 
+ * Create information for the page on which the search
+ */
+function mysearch_search_info() {
+  return array(
+    'title' => 'mysearch',
+    'path' => 'example', // Part of the path after the / search /
+  );
+}
+
+/**
+ * Implements hook_search_execute().
+ *
+ * Get a query parameter, process it. Execute the query - to get data.
+ * Hormiruem hole and pass it to output
+ */
+function mysearch_search_execute($keys = NULL) {
+  // get rid of the spaces at the beginning and at the end
+  $keys = trim($keys);
+  if (!$keys) {
+    $keys = '';
+  }
+       //var_dump($conditions);
+  $nodes = db_select('node', 'n')
+    ->fields('n')
+    ->condition('n.title', '%' . db_like($keys) . '%', 'LIKE')
+    ->execute();
+  
+  $search_respone = array();
+  $array_result = array();
+  $search_respone['keys'] = $keys;
+  
+  // Putting the result in an array of arrays
+  while($record = $nodes->fetchAssoc()) {
+    $search_respone['link'] = url('node/' . $record['nid']);
+    $search_respone['title'] = $record['title'];
+    $array_result[] = $search_respone;
+  }
+  
+  if (!$array_result) {
+    return array(
+      array(
+        'keys' => $keys,
+        'snippet' => "Not found : {$keys}"
+      )
+    );
+  } else {
+    return  $array_result;
+  }
+}
+
+/**
+ * Implements hook_search_page().
+ *
+ * Adds some result text to the search page.
+ */
+function mysearch_search_page($results) {  
+  
+  if (!$results) {
+    $output['prefix']['#markup'] = '<h2>Search for - '.$results['keys']
+    . '</h2><ul class="search-results">';
+  } else {
+    $output['prefix']['#markup'] = '<h2>Search for - '.$results[0]['keys']
+    . '</h2><ul class="search-results">';
+  }
+
+  foreach ($results as $entry) {
+    $output[] = array(
+      '#theme' => 'search_result',
+      '#result' => $entry,
+      '#module' => 'mysearch',
+    );
+  }
+  $output['suffix']['#markup'] = '</ul>' . theme('pager');
+
+  return $output;
+  
+}

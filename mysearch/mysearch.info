@@ -1,0 +1,4 @@
+name = Module mysearch
+description = "Custom search."
+core = 7.x
+package = Administration
